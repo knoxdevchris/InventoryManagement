@@ -1,63 +1,100 @@
-# InventoryManagement
+# Inventory Management
 
-**Small-scale inventory management system built in Java**
-
-## Table of Contents
-- [Introduction](#introduction)
-- [Features](#features)
-- [Class Overview](#class-overview)
-  - [Product](#product)
-  - [Electronics](#electronics)
-  - [Inventory](#inventory)
-  - [InventoryApp](#inventoryapp)
-
----
-
-## Introduction
-
-This project is a simple **Inventory Management System** built in Java using Object-Oriented Programming (OOP) principles. It allows users to add, remove, and list products. The system also implements file persistence to save and load inventory data using file I/O.
-
----
+A small-scale inventory management system written in Java, organized as a
+standard Maven project with a layered architecture, validated domain models,
+and JUnit 5 test coverage.
 
 ## Features
 
-- **Product Management**: Add, remove, and list products in the inventory.
-- **OOP Principles**: Uses classes, inheritance, and abstraction.
-- **File Persistence**: Inventory data is saved to a file and reloaded on startup.
-- **Text-Based Interface**: Simple user interface through the command line.
+- Multiple product categories: **Electronics**, **Food**, **Clothing**
+- Category-specific attributes (warranty, expiration date, size)
+- Input validation on every domain object and CLI prompt
+- File-based persistence behind a swappable repository interface
+- Summary statistics (total units, total inventory value)
+- Clean command-line interface with typed prompts and friendly error messages
+- Unit tests for models, services, and repository
 
----
+## Project Layout
 
-## Class Overview
+```
+inventory-management/
+├── pom.xml
+├── README.md
+└── src/
+    ├── main/java/com/inventory/
+    │   ├── InventoryApp.java          # Entry point
+    │   ├── cli/                       # Console UI
+    │   │   ├── ConsoleApp.java
+    │   │   └── ConsoleIO.java
+    │   ├── exception/                 # Domain exceptions
+    │   │   ├── DuplicateProductException.java
+    │   │   ├── InventoryException.java
+    │   │   └── ProductNotFoundException.java
+    │   ├── model/                     # Domain model
+    │   │   ├── Category.java
+    │   │   ├── Clothing.java
+    │   │   ├── Electronics.java
+    │   │   ├── Food.java
+    │   │   └── Product.java
+    │   ├── repository/                # Persistence abstraction
+    │   │   ├── FileInventoryRepository.java
+    │   │   ├── InMemoryInventoryRepository.java
+    │   │   └── InventoryRepository.java
+    │   └── service/                   # Business logic
+    │       └── InventoryService.java
+    └── test/java/com/inventory/       # JUnit 5 tests
+        ├── model/ProductTest.java
+        ├── repository/FileInventoryRepositoryTest.java
+        └── service/InventoryServiceTest.java
+```
 
-### Product
-- **Description**: `Product` is the base class for all types of products in the inventory. It is abstract and provides common attributes like `productId`, `name`, `price`, and `quantity`. Each product type extends this class and implements the `getCategory` method.
-- **Key Methods**:
-  - `getProductId()`: Returns the product's ID.
-  - `getName()`: Returns the product's name.
-  - `getPrice()`: Returns the product's price.
-  - `getQuantity()`: Returns the quantity of the product in stock.
-  - `getCategory()`: Abstract method to return the product's category.
+## Architecture
 
-### Electronics
-- **Description**: The `Electronics` class is a specific type of `Product` that represents electronics items in the inventory.
-- **Key Methods**:
-  - Inherits all methods from `Product`.
-  - Implements `getCategory()`, returning `"Electronics"`.
+Three layers keep responsibilities separated:
 
-### Inventory
-- **Description**: The `Inventory` class manages a list of `Product` objects. It provides functionality to add and remove products from the inventory and uses file I/O to save and load the inventory.
-- **Key Methods**:
-  - `addProduct(Product product)`: Adds a new product to the inventory.
-  - `removeProduct(String productId)`: Removes a product from the inventory by its ID.
-  - `listProducts()`: Lists all products in the inventory.
-  - `saveInventory(String fileName)`: Saves the inventory to a file.
-  - `loadInventory(String fileName)`: Loads the inventory from a file.
+1. **Model** – Immutable-identity product entities with validation.
+2. **Repository** – `InventoryRepository` interface with file and in-memory
+   implementations.
+3. **Service** – `InventoryService` owns business rules (duplicate detection,
+   aggregation, filtering) and is the only entry point the CLI talks to.
 
-### InventoryApp
-- **Description**: This is the entry point of the program. It provides a text-based user interface to interact with the `Inventory` class and manage products.
-- **Key Methods**:
-  - `addProduct()`: Prompts the user to enter product details and adds the product to the inventory.
-  - `removeProduct()`: Prompts the user to remove a product by its ID.
-  - `saveInventory()`: Saves the current inventory to a file before exit.
-  - `loadInventory()`: Loads the inventory from a file when the program starts.
+The CLI layer (`ConsoleApp`, `ConsoleIO`) handles presentation and user input
+parsing; it has no knowledge of persistence.
+
+## Requirements
+
+- Java 17+
+- Maven 3.9+
+
+## Build & Run
+
+```bash
+# Compile and run tests
+mvn test
+
+# Build a runnable jar
+mvn package
+
+# Launch the application (uses ./inventory.dat by default)
+java -jar target/inventory-management-1.0.0.jar
+
+# Or specify a custom data file
+java -jar target/inventory-management-1.0.0.jar /path/to/data.dat
+```
+
+## Menu
+
+```
+1) Add product
+2) Remove product
+3) Update quantity
+4) List all products
+5) List by category
+6) Summary
+7) Save
+8) Save and exit
+```
+
+## License
+
+See [LICENSE](LICENSE).
